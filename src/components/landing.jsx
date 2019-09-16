@@ -22,7 +22,6 @@ class Landing extends Component {
   handleSubmit(event) {
     this.setState({ tickers: [] });
     this.setState({ stockInfo: [] });
-
     for (let stock of Object.entries(testjson)) {
       if (stock[1][lemmatize.noun(this.state.value.toLowerCase())]) {
         this.setState(state => {
@@ -30,13 +29,8 @@ class Landing extends Component {
           return {
             tickers
           };
-        });
+        }, this.returnStockInfo(stock[0]));
       }
-    }
-
-    for (let ticker of this.state.tickers) {
-      console.log(ticker);
-      this.returnStockInfo(ticker);
     }
 
     event.preventDefault();
@@ -64,8 +58,8 @@ class Landing extends Component {
             <input type="submit" value="search" />
           </form>
           <ul>
-            {this.state.stockInfo.map(stockInfo => (
-              <li key={stockInfo.companyName}>
+            {this.state.stockInfo.map((stockInfo, index) => (
+              <li key={index}>
                 {stockInfo.price} {stockInfo.companyName}
               </li>
             ))}
@@ -86,7 +80,7 @@ class Landing extends Component {
       .then(response => response.json())
       .then(data =>
         this.setState(state => {
-          console.log(data.profile);
+          // console.log(data.profile);
           const stockInfo = state.stockInfo.concat(data.profile);
           return {
             stockInfo
@@ -94,6 +88,14 @@ class Landing extends Component {
         })
       );
   }
+
+  // returnAllStockInfo() {
+  //   console.log(this.state.tickers);
+
+  //   for (let ticker of this.state.tickers) {
+  //     this.returnStockInfo(ticker);
+  //   }
+  // }
 }
 
 export default Landing;
