@@ -3,6 +3,7 @@ import Title from "./title";
 import "../styles/landing.css";
 import testjson from "../assets/TESTJSON.json";
 import lemmatize from "wink-lemmatizer";
+import axios from "axios";
 
 class Landing extends Component {
   state = {
@@ -19,24 +20,40 @@ class Landing extends Component {
     this.returnStockInfo = this.returnStockInfo.bind(this);
   }
 
-  handleSubmit(event) {
+  async handleSubmit(event) {
+    event.preventDefault();
+
     this.setState({ tickers: [] });
     this.setState({ stockInfo: [] });
+
     for (let stock of Object.entries(testjson)) {
-      if (stock[1][lemmatize.noun(this.state.value.toLowerCase())]) {
-        this.setState(state => {
-          const tickers = state.tickers.concat(stock[0]);
-          return {
-            tickers
-          };
-        }, this.returnStockInfo(stock[0]));
+      const lemmatized_search = lemmatize.noun(this.state.value.toLowerCase());
+
+      if (stock[1][lemmatized_search]) {
+        // this.setState(
+        //   state => ({
+        //     tickers: [...state.tickers, stock[0]]
+        //   }),
+        //   this.returnStockInfo(stock[0])
+        // );
+
+        // const result = await axios.get(
+        //   "https://financialmodelingprep.com/api/v3/company/profile/".concat(
+        //     stock[0]
+        //   )
+        // );
+        const result = await this.returnStockInfo(stock[0]);
+        console.log("RESULT", result);
+        // this.setState(state => ({
+        //   stockInfo: [...state.stockInfo, result]
+        // }));
       }
     }
 
-    event.preventDefault();
+    // event.preventDefault();
   }
 
-  // update stock ticker, this will then update view - CHANGE TO FUNCTION IN JSX ()=>
+  // updates view when you type
   handleChange(event) {
     this.setState({ value: event.target.value });
   }
@@ -58,8 +75,8 @@ class Landing extends Component {
             <input type="submit" value="search" />
           </form>
           <ul>
-            {this.state.stockInfo.map((stockInfo, index) => (
-              <li key={index}>
+            {this.state.stockInfo.map(stockInfo => (
+              <li key={stockInfo.companyName}>
                 {stockInfo.price} {stockInfo.companyName}
               </li>
             ))}
@@ -69,33 +86,26 @@ class Landing extends Component {
     );
   }
 
-  returnStockJSX() {
-    return <h1>RETURNJSXTEST</h1>;
-  }
-
+  // using axios get json object from api call
   returnStockInfo(ticker) {
-    fetch(
-      "https://financialmodelingprep.com/api/v3/company/profile/".concat(ticker)
-    )
-      .then(response => response.json())
-      .then(data =>
-        this.setState(state => {
-          // console.log(data.profile);
-          const stockInfo = state.stockInfo.concat(data.profile);
-          return {
-            stockInfo
-          };
-        })
-      );
+    return axios
+      .get(
+        "https://financialmodelingprep.com/api/v3/company/profile/".concat(
+          ticker
+        )
+      )
+      .then(response => {
+        // this.setState(state => ({
+        //   stockInfo: [...state.stockInfo, response.data.profile]
+        // }));
+        return response.data.profile;
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
-
-  // returnAllStockInfo() {
-  //   console.log(this.state.tickers);
-
-  //   for (let ticker of this.state.tickers) {
-  //     this.returnStockInfo(ticker);
-  //   }
-  // }
 }
 
 export default Landing;
+
+// NEED TO RANK STOCKS
